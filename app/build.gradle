@@ -1,0 +1,29 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.watersidepress.office'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.watersidepress.office'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    // The page built by tools/build.mjs is bundled into the app, so it works offline.
+    sourceSets {
+        main.assets.srcDirs = ['../web']
+    }
+    androidResources {
+        noCompress 'js', 'ttf'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

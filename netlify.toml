@@ -1,0 +1,4 @@
+# Optional web version: the same page the app bundles.
+[build]
+  command = ""
+  publish = "web"
