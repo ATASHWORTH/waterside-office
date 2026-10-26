@@ -120,7 +120,8 @@
   var esvState = {}; // dateKey → 'loading' | 'failed' | 'badkey'
   function loadEsv(d, refs) {
     var k = dateKey(d), key = esvKey();
-    if (!key || esvState[k]) return; // already loading, loaded, or failed ("Try again" clears it)
+    // Only one day is kept (the ESV's storage limit), so a day loaded earlier is fetched again when revisited.
+    if (!key || (esvState[k] && esvState[k] !== 'ok')) return; // loading, or failed ("Try again" clears it)
     esvState[k] = 'loading';
     esvGet(refs.join(';'), key, function (status, body) {
       var data = null;

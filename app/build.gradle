@@ -10,8 +10,8 @@ android {
         applicationId 'com.watersidepress.office'
         minSdk 26
         targetSdk 34
-        versionCode 5
-        versionName '1.4'
+        versionCode 6
+        versionName '1.5'
     }
 
     // The page built by tools/build.mjs is bundled into the app, so it works offline.

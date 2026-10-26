@@ -37,6 +37,25 @@ const pointed = (s) => esc(s).replace(/ : /g, ' <span class="colon" aria-hidden=
 // Older / modern wording: both are in the page; the Wording switch shows one.
 const dual = (older, newer) => older === newer ? older : `<div class="old-only">${older}</div><div class="new-only">${newer}</div>`;
 const msrc = (text) => `<p class="source">${kind('historic')}${esc(text)} · ${esc(modern.MODERN_SOURCE)}</p>`;
+// Scripture said in the liturgy (sentences, the word after confession, the Grace): ESV on the site,
+// King James in Older English, taken from the bundled KJV so the two always match the readings.
+const KJV = JSON.parse(readFileSync(join(ROOT, 'data/kjv.json'), 'utf8'));
+// Where the site quotes only part of a verse, the matching part of the KJV verse.
+const KJV_PART = { 'Luke 24:29': 'Abide with us: for it is toward evening, and the day is far spent.' };
+function kjvText(ref) {
+  const m = /^(.+?) (\d+):(\d+)(?:[–-](\d+))?$/.exec(ref);
+  if (!m) throw new Error(`Cannot read the reference ${ref}`);
+  const book = m[1] === 'Psalm' ? 'Psalms' : m[1];
+  const ch = (KJV[book] || [])[+m[2] - 1];
+  if (!ch) throw new Error(`${ref} is not in the KJV data`);
+  let text = ch.slice(+m[3] - 1, +(m[4] || m[3])).join(' ');
+  if (KJV_PART[ref]) {
+    if (!text.includes(KJV_PART[ref])) throw new Error(`KJV text for ${ref} has changed`);
+    text = KJV_PART[ref];
+  }
+  return esc(text).replace(/\bLORD(’S|'S)?\b/g, (_, s) => `<span class="sc">Lord${s ? s.replace('S', 's') : ''}</span>`);
+}
+const scripture = (r) => dual(`${src('kjv', r.ref)}<p class="scripture">${kjvText(r.ref)}</p>`, `${src('scripture', r.ref)}${verse(r)}`);
 const part = (id, title, inner, extra = '') => `<section class="part ${extra}" id="${id}"><h3>${title}</h3>${inner}</section>`;
 
 const cantKey = (c) => Object.keys(off.canticles).find((k) => off.canticles[k] === c);
@@ -63,7 +82,7 @@ function renderOffice(key) {
   const t = off.texts;
   const id = (s) => `${key}-part-${s}`;
   const both = (render, field) => `<div class="weekday-only">${render(field.weekday)}</div><div class="sunday-only">${render(field.sunday)}</div>`;
-  const sentence = (s) => `${src('scripture', s.ref)}${verse(s)}`;
+  const sentence = (s) => scripture(s);
   const cant = (k) => canticle(off.canticles[k]);
   const sameCanticle = o.canticle.weekday === o.canticle.sunday;
   const sections = [
@@ -82,7 +101,7 @@ function renderOffice(key) {
     <p class="rubric">All kneel or bow, and say together:</p>
     ${dual(`${src('historic', t.confession.source)}<p>${esc(t.confession.text)}</p>`, `${msrc(t.confession.source)}<p>${esc(modern.texts.confession.text)}</p>`)}
     <p class="rubric">The leader then reads:</p>
-    ${src('scripture', t.assurance.ref)}${verse(t.assurance)}
+    ${scripture(t.assurance)}
     ${dual(note('About the confession', esc(t.confession.note)), note('About the confession', esc(modern.texts.confession.note)))}`, 'full-only')}
   ${part(id('versicles'), 'Invitation to praise', dual(`${src('historic', t.versicles.source)}${lines(t.versicles.lines)}`, `${msrc(t.versicles.source)}${lines(modern.texts.versicles)}`))}
   ${part(id('psalms'), 'The Psalms appointed', `
@@ -108,7 +127,7 @@ function renderOffice(key) {
     </div>
     <details class="note"><summary>A prayer for our children</summary><p class="source">${kind('original')}${esc(t.forChildren.source)}</p><p>${esc(t.forChildren.text)}</p></details>`)}
   ${part(id('hymn'), 'Hymn of the week', `<p class="rubric">A hymn may be sung here, or at the beginning. The same ${key} hymn is sung each day from Monday to Sunday, so that it is learned by heart.</p><div data-slot="hymn"></div>`)}
-  ${part(id('blessing'), 'The Grace', `${src('scripture', o.blessing.ref)}${verse(o.blessing)}<p class="meta">Praying alone or as a household without a minister, many say “us” for “you”. The words of Scripture are otherwise unaltered.</p>`)}
+  ${part(id('blessing'), 'The Grace', `${scripture(o.blessing)}<p class="meta"><span class="old-only">Praying alone or as a household without a minister, many say “us” for “you” and “thee”.</span><span class="new-only">Praying alone or as a household without a minister, many say “us” for “you”.</span> The words of Scripture are otherwise unaltered.</p>`)}
   <p class="amen" aria-hidden="true">✠</p>
 </div>`;
 }
