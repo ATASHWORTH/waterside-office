@@ -1,4 +1,27 @@
-# Optional web version: the same page the app bundles.
+# Web version of the Daily Office. Netlify builds the page from the Waterside Press site's own
+# content (the same way the APK workflow does), so the web app always matches the site.
 [build]
-  command = ""
+  command = "rm -rf site && git clone --depth 1 https://github.com/atashworth/waterside-press site && SITE_DIR=site node tools/build.mjs"
   publish = "web"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# The ESV API does not accept requests from web pages on other sites, so the web app reaches it
+# through this address. Each reader's own key travels with their request; nothing is stored here.
+[[redirects]]
+  from = "/esv-api/*"
+  to = "https://api.esv.org/:splat"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

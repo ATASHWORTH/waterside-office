@@ -132,6 +132,13 @@ const html = `<!doctype html>
 <meta name="theme-color" content="#eef1ee">
 <title>Daily Office · Waterside Press</title>
 <link rel="icon" href="logo.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Daily Office">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Morning and Evening Prayer for the household, with the day’s psalms and lessons. From Waterside Press.">
 <style>
 ${css}
 </style>
@@ -234,4 +241,16 @@ ${js}
 writeFileSync(join(OUT, 'index.html'), html);
 writeFileSync(join(OUT, 'kjv.js'), 'window.KJV=' + readFileSync(join(ROOT, 'data/kjv.json'), 'utf8') + ';\n');
 copyFileSync(join(SITE, 'src/assets/logo.svg'), join(OUT, 'logo.svg'));
+for (const f of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png']) copyFileSync(join(ROOT, 'tools/icons', f), join(OUT, f));
+writeFileSync(join(OUT, 'sw.js'), readFileSync(join(ROOT, 'tools/sw.js'), 'utf8').replace('__VERSION__', `${version}-${Date.now().toString(36)}`));
+writeFileSync(join(OUT, 'manifest.webmanifest'), JSON.stringify({
+  name: 'Daily Office · Waterside Press', short_name: 'Daily Office',
+  description: 'Morning and Evening Prayer for the household, with the day’s psalms and lessons.',
+  start_url: './', scope: './', display: 'standalone', background_color: '#eef1ee', theme_color: '#eef1ee',
+  icons: [
+    { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+    { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
+    { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+  ],
+}, null, 2));
 console.log(`Built web/index.html (${(html.length / 1024).toFixed(0)} KB) from ${SITE}`);

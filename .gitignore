@@ -4,3 +4,11 @@ local.properties
 *.iml
 .idea/
 site/
+.netlify
+# Built by tools/build.mjs (on GitHub Actions for the APK, on Netlify for the web)
+web/index.html
+web/kjv.js
+web/logo.svg
+web/sw.js
+web/manifest.webmanifest
+web/*.png

@@ -102,7 +102,9 @@
       try { Native.esvFetch(url, key, cb); } catch (e) { delete window[cb]; done(0, ''); }
       return;
     }
-    fetch(url, { headers: { Authorization: 'Token ' + key } })
+    // On the web, go through the site's own /esv-api/ address (the ESV API refuses cross-site page requests).
+    var viaSite = /^https?:$/.test(location.protocol) ? url.replace('https://api.esv.org/', '/esv-api/') : url;
+    fetch(viaSite, { headers: { Authorization: 'Token ' + key } })
       .then(function (r) { return r.text().then(function (t) { done(r.status, t); }); }, function () { done(0, ''); });
   }
   function parsePassage(text) {
@@ -379,4 +381,9 @@
   document.querySelectorAll('[data-year]').forEach(function (n) { n.textContent = new Date().getFullYear(); });
   select(byHour());
   render();
+
+  // Web version: keep working offline after the first visit.
+  if (!Native && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    try { navigator.serviceWorker.register('sw.js'); } catch (e) {}
+  }
 })();
