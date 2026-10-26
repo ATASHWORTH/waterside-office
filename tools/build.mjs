@@ -19,6 +19,7 @@ if (!existsSync(join(SITE, 'content/office.mjs'))) {
 }
 const off = await import(pathToFileURL(join(SITE, 'content/office.mjs')).href);
 const hymns = await import(pathToFileURL(join(SITE, 'content/hymns.mjs')).href);
+const sitePages = await import(pathToFileURL(join(SITE, 'content/pages.mjs')).href);
 const modern = await import(pathToFileURL(join(ROOT, 'tools/modern.mjs')).href);
 const OUT = join(ROOT, 'web');
 
@@ -114,6 +115,17 @@ function renderOffice(key) {
 const psalterTable = () => `<div class="table-scroll"><table class="psalter"><caption>The psalter by day of the month (1662). On the 31st, the psalms of the 30th day are read again.</caption>
   <thead><tr><th scope="col">Day</th><th scope="col">Morning</th><th scope="col">Evening</th></tr></thead>
   <tbody>${off.psalter.map(([m, e], i) => `<tr><th scope="row">${i + 1}</th><td>${m.join(', ')}</td><td>${e.join(', ')}</td></tr>`).join('')}</tbody></table></div>`;
+
+// The open letter, taken from the site so the two never differ. Links to the Daily Office stay in the
+// app (they close the letter); links to other parts of Waterside Press open the website.
+const SITE_URL = (process.env.WATERSIDE_URL || 'https://waterside-press.netlify.app').replace(/\/$/, '');
+const letterPage = sitePages.pages.find((p) => p.path === 'letter-to-the-head-of-the-household/');
+if (!letterPage) throw new Error('The Letter to the Head of the Household was not found in the site content.');
+const letterHtml = letterPage.body({ href: (p) => p === 'daily-office/' ? '#close-letter' : `${SITE_URL}/${p}`, esc })
+  .replace(/<div class="wrap page-head">/, '<div class="letter-head">')
+  .replace(/<div class="wrap prose-center">/, '<div class="letter-body">')
+  .replace(/<h2>/g, '<h3>').replace(/<\/h2>/g, '</h3>')
+  .replace(/<h1>/, '<h2 id="letter-h">').replace(/<\/h1>/, '</h2>');
 
 const plan = { epoch: off.PLAN_EPOCH, psalter: off.psalter, ot: off.otBooks, nt: off.ntBooks, gloria: off.canticles.gloria, gloriaModern: modern.canticles.gloria };
 
@@ -211,13 +223,16 @@ ${css}
       <div><b>Keep screen on</b><small>While the app is open.</small></div>
       <button type="button" class="switch" id="awake-toggle" role="switch" aria-checked="false"><span></span></button>
     </div>
+    <button type="button" class="setting setting-link" data-open="about"><span><b>About</b><small>The Letter to the Head of the Household, how the readings work, and credits</small></span><span aria-hidden="true">›</span></button>
     <p class="legend">Words in <span class="rubric-sample">red italic</span> are instructions and are not read aloud. Lines marked <b>Leader</b> and <b>All</b> are said in turn.</p>
   </div>
 </div>
 
 <div class="sheet" id="sheet-about" role="dialog" aria-modal="true" aria-labelledby="about-h" hidden>
   <div class="sheet-card prose">
-    <div class="sheet-head"><h2 id="about-h">About the Office</h2><button type="button" class="icon-btn" data-close aria-label="Close">✕</button></div>
+    <div class="sheet-head"><h2 id="about-h">About</h2><button type="button" class="icon-btn" data-close aria-label="Close">✕</button></div>
+    <button type="button" class="letter-card" data-open="letter"><span class="kicker">An open letter</span><b>A Letter to the Head of the Household</b><small>On the charge God has laid on every husband and father.</small><span class="arrow">Read the letter ›</span></button>
+    <h3>The Office</h3>
     <p>Morning and Evening Prayer, adapted for the household from the Book of Common Prayer. Pray it alone, on behalf of your household, or with everyone gathered. The order stays the same each day so that it can be learned; the psalms and lessons change according to a set plan. The full form takes about twenty minutes, the shorter form about eight.</p>
     <h3>How the readings are appointed</h3>
     <p><strong>Psalms.</strong> The Book of Common Prayer (1662) divides the 150 psalms over thirty days, morning and evening, so that the whole psalter is read every month. The app follows that table exactly.</p>
@@ -226,6 +241,14 @@ ${css}
     ${psalterTable()}
     <p class="small">Everything here works without an internet connection. The app keeps your settings on this phone and sends nothing anywhere.</p>
     <p class="small">Daily Office ${esc(version)} · © <span data-year>2026</span> Waterside Press. Feedback: <a href="mailto:atashworth@gmail.com?subject=Daily%20Office%20app">atashworth@gmail.com</a></p>
+  </div>
+</div>
+
+<div class="sheet sheet-full" id="sheet-letter" role="dialog" aria-modal="true" aria-labelledby="letter-h" hidden>
+  <div class="sheet-card letter">
+    <div class="sheet-head"><span class="mark small" aria-hidden="true"></span><button type="button" class="icon-btn" data-close aria-label="Close the letter">✕</button></div>
+    ${letterHtml}
+    <p class="letter-go"><button type="button" class="begin" data-close>Begin the Daily Office</button></p>
   </div>
 </div>
 

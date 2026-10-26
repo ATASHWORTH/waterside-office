@@ -273,9 +273,19 @@
     close();
     openSheet = document.getElementById('sheet-' + name);
     openSheet.hidden = false;
-    openSheet.querySelector('[data-close]').focus();
+    openSheet.querySelector('.sheet-card').scrollTop = 0;
+    var card = openSheet.querySelector('.sheet-card'); card.tabIndex = -1; card.focus({ preventScroll: true });
   }
-  function close() { if (openSheet) { openSheet.hidden = true; openSheet = null; return true; } return false; }
+  function close() {
+    if (!openSheet) return false;
+    if (openSheet.id === 'sheet-letter') store('wo-letter-seen', '1');
+    openSheet.hidden = true; openSheet = null; return true;
+  }
+  // In the letter, the link to the Daily Office simply closes it.
+  document.getElementById('sheet-letter').addEventListener('click', function (e) {
+    var a = e.target.closest('a[href="#close-letter"]');
+    if (a) { e.preventDefault(); close(); }
+  });
   document.querySelectorAll('[data-open]').forEach(function (b) { b.addEventListener('click', function () { open(b.getAttribute('data-open')); }); });
   document.querySelectorAll('.sheet').forEach(function (s) {
     s.addEventListener('click', function (e) { if (e.target === s || e.target.closest('[data-close]')) close(); });
@@ -381,6 +391,8 @@
   document.querySelectorAll('[data-year]').forEach(function (n) { n.textContent = new Date().getFullYear(); });
   select(byHour());
   render();
+  // The first time the app is opened, it begins with the open letter.
+  if (load('wo-letter-seen') !== '1') open('letter');
 
   // Web version: keep working offline after the first visit.
   if (!Native && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {

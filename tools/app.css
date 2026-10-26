@@ -201,3 +201,26 @@ html:not(.modern) .slide-label[data-side="old"], html.modern .slide-label[data-s
 .text-note button { font: inherit; }
 .loading { font-family: var(--sans); font-size: .85em; color: var(--ink-soft); }
 .tr { font-family: var(--sans); font-size: .5em; font-weight: 600; letter-spacing: .08em; color: var(--brass-ink); vertical-align: .35em; margin-left: .3em; }
+
+/* About row in settings */
+.setting-link { width: 100%; background: none; border: 0; border-top: 1px solid var(--stone); text-align: left; cursor: pointer; font-family: var(--sans); color: var(--ink); }
+.setting-link > span:last-child { font-size: 1.6rem; color: var(--forest); }
+
+/* The open letter */
+.letter-card { display: block; width: 100%; text-align: left; cursor: pointer; background: var(--vellum); border: 1px solid var(--stone); border-left: 3px solid var(--logo); border-radius: 4px; padding: 14px 16px; margin: 6px 0 4px; font-family: var(--sans); color: var(--ink); }
+.letter-card b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.35rem; line-height: 1.2; margin: 2px 0 4px; }
+.letter-card small { display: block; color: var(--ink-soft); font-size: .9rem; }
+.letter-card .arrow { display: block; margin-top: 8px; color: var(--forest); font-weight: 600; }
+.kicker { font-family: var(--sans); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--brass-ink); }
+.sheet-full .sheet-card { max-height: 100vh; height: 100%; border-radius: 0; padding-top: calc(env(safe-area-inset-top, 0px) + 4px); }
+.sheet-card.letter { font-family: var(--serif); font-size: calc(17px * var(--reading-scale)); line-height: 1.7; }
+.letter .mark.small { width: 30px; height: 30px; }
+.letter-head { text-align: center; padding: .5rem 0 1rem; border-bottom: 1px solid var(--stone); margin-bottom: 1.4rem; }
+.letter-head h2 { font-size: 2.1em; margin: .3rem 0 .6rem; }
+.letter-head .lede { font-style: italic; color: var(--ink-soft); margin: 0; }
+.letter-body h3 { font-size: 1.45em; margin: 1.8rem 0 .5rem; }
+.letter-body blockquote { margin: 1rem 0; padding: .2rem 0 .2rem 1rem; border-left: 2px solid var(--brass); }
+.letter-body .meta { font-size: .78rem; }
+.letter-go { text-align: center; margin: 2rem 0 1rem; }
+.begin { border: 0; border-radius: 24px; min-height: 48px; padding: 0 26px; background: var(--forest); color: var(--on-forest); font-family: var(--sans); font-size: 1.05rem; font-weight: 600; cursor: pointer; }
+.sheet-card:focus { outline: none; }
