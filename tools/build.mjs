@@ -118,7 +118,7 @@ function renderOffice(key) {
   ${o.canticle2 ? part(id('canticle2'), 'Second canticle', cant(o.canticle2), 'full-only') : ''}
   ${part(id('creed'), "The Apostles’ Creed", `<p class="rubric">All say together:</p>${dual(`${src('historic', t.creed.source)}${t.creed.text.map((x) => `<p>${esc(x)}</p>`).join('')}${note('Notes on the words', esc(t.creed.note))}`, `${msrc('The Apostles’ Creed as in the Book of Common Prayer (1662)')}${modern.texts.creed.text.map((x) => `<p>${esc(x)}</p>`).join('')}${note('Notes on the words', esc(modern.texts.creed.note))}`)}`, 'full-only')}
   ${part(id('prayers'), 'The Prayers', `
-    <h4>The Lord’s Prayer</h4>${dual(`${src('historic', t.lordsPrayer.source)}<p>${esc(t.lordsPrayer.text)}</p>`, `${msrc(t.lordsPrayer.source)}<p>${esc(modern.texts.lordsPrayer)}</p>`)}
+    <h4>The Lord’s Prayer</h4>${src('historic', t.lordsPrayer.source)}<p>${esc(t.lordsPrayer.text)}</p>
     <div class="full-only"><h4>Suffrages</h4>${dual(`${src('historic', t.suffrages.source)}${lines(t.suffrages.lines)}`, `${msrc(t.suffrages.source)}${lines(modern.texts.suffrages)}`)}</div>
     ${both((cs) => cs.map((c, i) => `<div class="${i ? 'full-only' : ''}">${collectBlock(c)}</div>`).join(''), o.collects)}
     <div class="full-only">

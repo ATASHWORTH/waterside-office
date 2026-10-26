@@ -6,7 +6,8 @@
 // renderings were made for Waterside Press and are labelled as such in the app.
 //
 // Collects are matched to the site's texts by their opening words, so the site can
-// reorder or retitle them without breaking the app. Hymns stay in their original words.
+// reorder or retitle them without breaking the app. Hymns stay in their original words,
+// and the Lord’s Prayer is always said in its traditional form.
 
 export const MODERN_SOURCE = 'Wording modernized by Waterside Press';
 
@@ -33,7 +34,6 @@ export const texts = {
     ],
     note: '“Catholic” here means the universal Church of every time and place. Reformed churches have read “he descended into hell” in different ways: the Heidelberg Catechism (Q. 44) as Christ’s bearing of hellish anguish on the cross, the Westminster Larger Catechism (Q. 50) as his continuing under the power of death until the third day.',
   },
-  lordsPrayer: 'Our Father in heaven, hallowed be your name. Your kingdom come, your will be done, on earth as it is in heaven. Give us this day our daily bread. And forgive us our trespasses, as we forgive those who trespass against us. And lead us not into temptation, but deliver us from evil. For yours is the kingdom, and the power, and the glory, for ever and ever. Amen.',
   suffrages: [
     ['Leader', 'O Lord, show your mercy to us.'],
     ['All', 'And grant us your salvation.'],
