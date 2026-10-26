@@ -241,7 +241,7 @@
     var out = '<h4>' + esc(h.title) + '</h4>';
     out += '<p class="source"><span class="kind">Trinity Hymnal ' + esc(h.th) + '</span>' + esc(h.source) + '</p>';
     out += '<p class="meta">Tune: ' + esc(h.tune) + ' · Week ' + (wk + 1) + ' of ' + HYMNS.morning.length + '</p>';
-    out += '<p class="hymn-listen"><a href="' + esc(h.video) + '" rel="noopener">▶ Hear the tune on YouTube</a> <span class="meta">(needs a connection)</span></p>';
+    out += '<p class="hymn-listen"><a href="' + esc(h.video) + '" rel="noopener">' + (/results\?search_query/.test(h.video) ? '▶ Find the tune on YouTube' : '▶ Hear the tune on YouTube') + '</a> <span class="meta">(needs a connection)</span></p>';
     h.stanzas.forEach(function (st, i) {
       out += '<p class="stanza"><span class="stanza-n">' + (i + 1) + '</span>' + esc(st) + '</p>';
       if (h.refrain && i === 0) out += '<p class="stanza refrain"><span class="stanza-n">R</span>' + esc(h.refrain) + '</p>';

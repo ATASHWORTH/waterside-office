@@ -11,14 +11,14 @@
 // stanzas, so a household singing from the book may meet small differences.
 //
 // `site` reuses a hymn already on the Waterside Press site (content/hymns.mjs).
-// `video` may be set to a specific YouTube link; otherwise the app links to a YouTube
-// search for the hymn and its tune.
+// `video` is the YouTube recording Aaron chose for learning the tune (October 2026);
+// hymns without one link to a YouTube search for the hymn and its tune.
 
 export const ANCHOR_MONDAY = '2026-10-26'; // week 1 of the rotation began on this Monday
 
 export const morning = [
   {
-    title: 'Awake, My Soul, and with the Sun', th: '395', tune: 'MORNING HYMN',
+    title: 'Awake, My Soul, and with the Sun', video: 'https://www.youtube.com/watch?v=dcaKA-zKB8E', th: '395', tune: 'MORNING HYMN',
     source: 'Thomas Ken, 1695, revised 1709',
     stanzas: [
       'Awake, my soul, and with the sun\nThy daily stage of duty run;\nShake off dull sloth, and joyful rise\nTo pay thy morning sacrifice.',
@@ -29,7 +29,7 @@ export const morning = [
     ],
   },
   {
-    title: 'When Morning Gilds the Skies', th: '167', tune: 'LAUDES DOMINI',
+    title: 'When Morning Gilds the Skies', video: 'https://www.youtube.com/watch?v=pCsC0CUH34I', th: '167', tune: 'LAUDES DOMINI',
     source: 'German, 19th century; translated by Edward Caswall, 1854',
     stanzas: [
       'When morning gilds the skies,\nMy heart awaking cries,\nMay Jesus Christ be praised!\nAlike at work and prayer\nTo Jesus I repair:\nMay Jesus Christ be praised!',
@@ -59,7 +59,7 @@ export const morning = [
     ],
   },
   {
-    title: 'O Worship the King', th: '2', tune: 'LYONS',
+    title: 'O Worship the King', video: 'https://www.youtube.com/watch?v=5_4jpwM_AwE', th: '2', tune: 'LYONS',
     source: 'Robert Grant, 1833, after Psalm 104',
     stanzas: [
       'O worship the King, all glorious above,\nO gratefully sing his power and his love;\nOur Shield and Defender, the Ancient of Days,\nPavilioned in splendour, and girded with praise.',
@@ -69,7 +69,7 @@ export const morning = [
     ],
   },
   {
-    title: 'Praise to the Lord, the Almighty', th: '53', tune: 'LOBE DEN HERREN',
+    title: 'Praise to the Lord, the Almighty', video: 'https://www.youtube.com/watch?v=_vegvb1u5s4', th: '53', tune: 'LOBE DEN HERREN',
     source: 'Joachim Neander, 1680; translated by Catherine Winkworth, 1863',
     stanzas: [
       'Praise to the Lord, the Almighty, the King of creation!\nO my soul, praise him, for he is thy health and salvation!\nAll ye who hear,\nNow to his temple draw near;\nJoin me in glad adoration!',
@@ -78,9 +78,9 @@ export const morning = [
       'Praise to the Lord! O let all that is in me adore him!\nAll that hath life and breath, come now with praises before him!\nLet the Amen\nSound from his people again:\nGladly for aye we adore him.',
     ],
   },
-  { site: 'psalm-100', title: 'All People That on Earth Do Dwell', th: '1', tune: 'OLD HUNDREDTH' },
+  { site: 'psalm-100', title: 'All People That on Earth Do Dwell', video: 'https://www.youtube.com/watch?v=w9_k5dyhcIE', th: '1', tune: 'OLD HUNDREDTH' },
   {
-    title: 'Come, Thou Almighty King', th: '101', tune: 'ITALIAN HYMN',
+    title: 'Come, Thou Almighty King', video: 'https://www.youtube.com/watch?v=lzzZVLlONmA', th: '101', tune: 'ITALIAN HYMN',
     source: 'Anonymous, c. 1757',
     stanzas: [
       'Come, thou almighty King,\nHelp us thy name to sing,\nHelp us to praise:\nFather all-glorious,\nO’er all victorious,\nCome, and reign over us,\nAncient of Days.',
@@ -90,7 +90,7 @@ export const morning = [
     ],
   },
   {
-    title: 'Immortal, Invisible, God Only Wise', th: '38', tune: 'ST. DENIO',
+    title: 'Immortal, Invisible, God Only Wise', video: 'https://www.youtube.com/watch?v=PS3QinSmPHI', th: '38', tune: 'ST. DENIO',
     source: 'Walter Chalmers Smith, 1867',
     stanzas: [
       'Immortal, invisible, God only wise,\nIn light inaccessible hid from our eyes,\nMost blessed, most glorious, the Ancient of Days,\nAlmighty, victorious, thy great name we praise.',
@@ -120,7 +120,7 @@ export const morning = [
     ],
   },
   {
-    title: 'Now Thank We All Our God', th: '98', tune: 'NUN DANKET',
+    title: 'Now Thank We All Our God', video: 'https://www.youtube.com/watch?v=9c7VaTjyuLA', th: '98', tune: 'NUN DANKET',
     source: 'Martin Rinkart, c. 1636; translated by Catherine Winkworth, 1858',
     stanzas: [
       'Now thank we all our God,\nWith heart, and hands, and voices,\nWho wondrous things hath done,\nIn whom his world rejoices;\nWho, from our mothers’ arms,\nHath blessed us on our way\nWith countless gifts of love,\nAnd still is ours today.',
@@ -129,7 +129,7 @@ export const morning = [
     ],
   },
   {
-    title: 'A Mighty Fortress Is Our God', th: '92', tune: 'EIN’ FESTE BURG',
+    title: 'A Mighty Fortress Is Our God', video: 'https://www.youtube.com/watch?v=V9uGNb8Zfic', th: '92', tune: 'EIN’ FESTE BURG',
     source: 'Martin Luther, 1529; translated by Frederic H. Hedge, 1853',
     stanzas: [
       'A mighty fortress is our God,\nA bulwark never failing;\nOur helper he amid the flood\nOf mortal ills prevailing.\nFor still our ancient foe\nDoth seek to work us woe;\nHis craft and power are great,\nAnd armed with cruel hate,\nOn earth is not his equal.',
@@ -142,7 +142,7 @@ export const morning = [
 
 export const evening = [
   {
-    title: 'All Praise to Thee, My God, This Night', th: '401', tune: 'TALLIS’ CANON',
+    title: 'All Praise to Thee, My God, This Night', video: 'https://www.youtube.com/watch?v=VqKgGqvSiW4', th: '401', tune: 'TALLIS’ CANON',
     source: 'Thomas Ken, 1695, revised 1709',
     stanzas: [
       'All praise to thee, my God, this night,\nFor all the blessings of the light;\nKeep me, O keep me, King of kings,\nBeneath thine own almighty wings.',
@@ -174,7 +174,7 @@ export const evening = [
     ],
   },
   {
-    title: 'Saviour, Breathe an Evening Blessing', th: '403', tune: 'EVENING PRAYER',
+    title: 'Saviour, Breathe an Evening Blessing', video: 'https://www.youtube.com/watch?v=MZiBHr-uvnA', th: '403', tune: 'EVENING PRAYER',
     source: 'James Edmeston, 1820',
     stanzas: [
       'Saviour, breathe an evening blessing,\nEre repose our spirits seal;\nSin and want we come confessing;\nThou canst save, and thou canst heal.',
@@ -184,7 +184,7 @@ export const evening = [
     ],
   },
   {
-    title: 'God, That Madest Earth and Heaven', th: '405', tune: 'AR HYD Y NOS',
+    title: 'God, That Madest Earth and Heaven', video: 'https://www.youtube.com/watch?v=YGq-EvN2zFg', th: '405', tune: 'AR HYD Y NOS',
     source: 'Reginald Heber, 1827 (stanza 1); Richard Whately, 1855 (stanza 2)',
     stanzas: [
       'God, that madest earth and heaven,\nDarkness and light;\nWho the day for toil hast given,\nFor rest the night;\nMay thine angel guards defend us,\nSlumber sweet thy mercy send us,\nHoly dreams and hopes attend us,\nThis livelong night.',
@@ -215,7 +215,7 @@ export const evening = [
     ],
   },
   {
-    title: 'Day Is Dying in the West', th: '408', tune: 'EVENING PRAISE',
+    title: 'Day Is Dying in the West', video: 'https://www.youtube.com/watch?v=rmaR4DwMULM', th: '408', tune: 'EVENING PRAISE',
     source: 'Mary A. Lathbury, 1877 (refrain 1890)',
     refrain: 'Holy, holy, holy, Lord God of Hosts!\nHeaven and earth are full of thee!\nHeaven and earth are praising thee,\nO Lord most high!',
     stanzas: [
@@ -226,7 +226,7 @@ export const evening = [
     ],
   },
   {
-    title: 'Softly Now the Light of Day', th: '409', tune: 'SEYMOUR',
+    title: 'Softly Now the Light of Day', video: 'https://www.youtube.com/watch?v=De6C8_w1bLA', th: '409', tune: 'SEYMOUR',
     source: 'George Washington Doane, 1824',
     stanzas: [
       'Softly now the light of day\nFades upon our sight away;\nFree from care, from labour free,\nLord, we would commune with thee.',
@@ -253,6 +253,6 @@ export const evening = [
       'So, whene’er the signal’s given\nUs from earth to call away,\nBorne on angels’ wings to heaven,\nGlad the summons to obey,\nMay we ever, may we ever\nReign with Christ in endless day.',
     ],
   },
-  { site: 'psalm-23', title: 'The Lord’s My Shepherd', th: '85–87', tune: 'CRIMOND' },
-  { site: 'psalm-90', title: 'O God, Our Help in Ages Past', th: '30', tune: 'ST. ANNE' },
+  { site: 'psalm-23', title: 'The Lord’s My Shepherd', video: 'https://www.youtube.com/watch?v=TqEWKFBLx9E', th: '85–87', tune: 'CRIMOND' },
+  { site: 'psalm-90', title: 'O God, Our Help in Ages Past', video: 'https://www.youtube.com/watch?v=BPtuN8DK2hE', th: '30', tune: 'ST. ANNE' },
 ];
