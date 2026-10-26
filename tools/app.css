@@ -224,3 +224,11 @@ html:not(.modern) .slide-label[data-side="old"], html.modern .slide-label[data-s
 .letter-go { text-align: center; margin: 2rem 0 1rem; }
 .begin { border: 0; border-radius: 24px; min-height: 48px; padding: 0 26px; background: var(--forest); color: var(--on-forest); font-family: var(--sans); font-size: 1.05rem; font-weight: 600; cursor: pointer; }
 .sheet-card:focus { outline: none; }
+
+/* Hymn of the week */
+.stanza { position: relative; padding-left: 1.6rem; }
+.stanza-n { position: absolute; left: 0; top: .1em; font-family: var(--sans); font-size: .7em; font-weight: 600; color: var(--brass-ink); }
+.refrain { font-style: italic; }
+.hymn-listen { font-family: var(--sans); font-size: .85em; margin: .2rem 0 1rem; }
+.hymn-listen a { font-weight: 600; }
+.next-hymn { margin-top: 1rem; }

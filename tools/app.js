@@ -220,6 +220,7 @@
       slot('lesson-ref').textContent = p.lessonRef;
       slot('lesson').innerHTML = tnote + lessonBlock(p.lesson, p.o === 'morning' ? 'First' : 'Second', esv && esv[p.lessonRef]);
     });
+    renderHymns();
     document.querySelectorAll('.psalter tbody tr').forEach(function (tr, i) { tr.classList.toggle('today', i === day - 1); });
   }
   root.addEventListener('click', function (e) {
@@ -227,6 +228,36 @@
     if (o) { open(o.getAttribute('data-open')); return; }
     if (e.target.closest('[data-retry]')) { esvState[dateKey(current)] = null; render(true); }
   });
+
+  // ── Hymn of the week ──
+  var HYMNS = window.OFFICE_HYMNS;
+  function weekOf(d) {
+    var a = HYMNS.anchor.split('-');
+    var days = Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(+a[0], +a[1] - 1, +a[2])) / 86400000);
+    var n = HYMNS.morning.length;
+    return ((Math.floor(days / 7) % n) + n) % n;
+  }
+  function hymnHtml(h, wk, next) {
+    var out = '<h4>' + esc(h.title) + '</h4>';
+    out += '<p class="source"><span class="kind">Trinity Hymnal ' + esc(h.th) + '</span>' + esc(h.source) + '</p>';
+    out += '<p class="meta">Tune: ' + esc(h.tune) + ' · Week ' + (wk + 1) + ' of ' + HYMNS.morning.length + '</p>';
+    out += '<p class="hymn-listen"><a href="' + esc(h.video) + '" rel="noopener">▶ Hear the tune on YouTube</a> <span class="meta">(needs a connection)</span></p>';
+    h.stanzas.forEach(function (st, i) {
+      out += '<p class="stanza"><span class="stanza-n">' + (i + 1) + '</span>' + esc(st) + '</p>';
+      if (h.refrain && i === 0) out += '<p class="stanza refrain"><span class="stanza-n">R</span>' + esc(h.refrain) + '</p>';
+    });
+    if (h.refrain) out += '<p class="rubric">The refrain is sung after each stanza.</p>';
+    if (h.note) out += '<details class="note"><summary>About this hymn</summary><p>' + esc(h.note) + '</p></details>';
+    out += '<p class="meta next-hymn">Next week: ' + esc(next.title) + '</p>';
+    return out;
+  }
+  function renderHymns() {
+    var wk = weekOf(current), n = HYMNS.morning.length;
+    ['morning', 'evening'].forEach(function (o) {
+      var slot = document.querySelector('#panel-' + o + ' [data-slot="hymn"]');
+      slot.innerHTML = hymnHtml(HYMNS[o][wk], wk, HYMNS[o][(wk + 1) % n]);
+    });
+  }
 
   function go(d) { current = midnight(d); render(); window.scrollTo(0, 0); }
   function shift(n) { go(new Date(current.getFullYear(), current.getMonth(), current.getDate() + n)); }

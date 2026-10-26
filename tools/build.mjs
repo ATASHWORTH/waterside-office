@@ -20,6 +20,7 @@ if (!existsSync(join(SITE, 'content/office.mjs'))) {
 const off = await import(pathToFileURL(join(SITE, 'content/office.mjs')).href);
 const hymns = await import(pathToFileURL(join(SITE, 'content/hymns.mjs')).href);
 const sitePages = await import(pathToFileURL(join(SITE, 'content/pages.mjs')).href);
+const rotation = await import(pathToFileURL(join(ROOT, 'tools/hymn-rotation.mjs')).href);
 const modern = await import(pathToFileURL(join(ROOT, 'tools/modern.mjs')).href);
 const OUT = join(ROOT, 'web');
 
@@ -106,7 +107,7 @@ function renderOffice(key) {
       <ul class="intercessions">${t.intercessions.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
     </div>
     <details class="note"><summary>A prayer for our children</summary><p class="source">${kind('original')}${esc(t.forChildren.source)}</p><p>${esc(t.forChildren.text)}</p></details>`)}
-  ${part(id('hymn'), 'Hymn', `<p class="rubric">A hymn may be sung here, or at the beginning.</p>${hymnBlock(hymns.byId[o.hymn])}`)}
+  ${part(id('hymn'), 'Hymn of the week', `<p class="rubric">A hymn may be sung here, or at the beginning. The same ${key} hymn is sung each day from Monday to Sunday, so that it is learned by heart.</p><div data-slot="hymn"></div>`)}
   ${part(id('blessing'), 'The Grace', `${src('scripture', o.blessing.ref)}${verse(o.blessing)}<p class="meta">Praying alone or as a household without a minister, many say “us” for “you”. The words of Scripture are otherwise unaltered.</p>`)}
   <p class="amen" aria-hidden="true">✠</p>
 </div>`;
@@ -126,6 +127,18 @@ const letterHtml = letterPage.body({ href: (p) => p === 'daily-office/' ? '#clos
   .replace(/<div class="wrap prose-center">/, '<div class="letter-body">')
   .replace(/<h2>/g, '<h3>').replace(/<\/h2>/g, '</h3>')
   .replace(/<h1>/, '<h2 id="letter-h">').replace(/<\/h1>/, '</h2>');
+
+// The weekly hymns: site hymns are filled in from the site's own content.
+const ytSearch = (h) => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(`${h.title} hymn ${h.tune.replace(/’/g, "'")}`);
+const resolveHymn = (h) => {
+  const base = h.site ? hymns.byId[h.site] : null;
+  if (h.site && !base) throw new Error(`Site hymn ${h.site} not found`);
+  const full = { ...h, source: h.source || base.source, stanzas: h.stanzas || base.stanzas, note: h.note || (base && base.note) || '' };
+  if (!full.stanzas || !full.stanzas.length) throw new Error(`No words for ${h.title}`);
+  return { title: full.title, th: full.th, tune: full.tune, source: full.source, stanzas: full.stanzas, refrain: full.refrain || '', note: full.note, video: h.video || ytSearch(h) };
+};
+const hymnPlan = { anchor: rotation.ANCHOR_MONDAY, morning: rotation.morning.map(resolveHymn), evening: rotation.evening.map(resolveHymn) };
+if (hymnPlan.morning.length !== hymnPlan.evening.length) throw new Error('The morning and evening hymn lists must be the same length');
 
 const plan = { epoch: off.PLAN_EPOCH, psalter: off.psalter, ot: off.otBooks, nt: off.ntBooks, gloria: off.canticles.gloria, gloriaModern: modern.canticles.gloria };
 
@@ -237,6 +250,7 @@ ${css}
     <h3>How the readings are appointed</h3>
     <p><strong>Psalms.</strong> The Book of Common Prayer (1662) divides the 150 psalms over thirty days, morning and evening, so that the whole psalter is read every month. The app follows that table exactly.</p>
     <p><strong>Lessons.</strong> One chapter of the Old Testament at Morning Prayer and one of the New Testament at Evening Prayer, read in order from Genesis and Matthew, beginning 1 January 2026. This is a Waterside plan, modelled on the Reformed practice of reading Scripture continuously, book by book; it is not the 1662 calendar of lessons. If you miss a day, read on from the day’s chapter; nothing is lost by skipping ahead or catching up.</p>
+    <p><strong>Hymns.</strong> One morning hymn and one evening hymn are sung every day for a week, Monday to Sunday, so that a household learns them by heart. The rotation runs ${hymnPlan.morning.length} weeks and then begins again, so each hymn comes round four times a year. Every hymn is in the Trinity Hymnal (1990), and its number there is given. The words printed are the original public-domain texts, which sometimes differ slightly from the hymnal’s. Each hymn links to YouTube to help you learn an unfamiliar tune (needs a connection).</p>
     <p><strong>The Church year.</strong> Seasonal collects and readings for Advent, Christmas, Lent, and Easter are not yet included.</p>
     ${psalterTable()}
     <p class="small">Everything here works without an internet connection. The app keeps your settings on this phone and sends nothing anywhere.</p>
@@ -252,7 +266,7 @@ ${css}
   </div>
 </div>
 
-<script>window.OFFICE_PLAN = ${JSON.stringify(plan)};</script>
+<script>window.OFFICE_PLAN = ${JSON.stringify(plan)}; window.OFFICE_HYMNS = ${JSON.stringify(hymnPlan)};</script>
 <script src="kjv.js"></script>
 <script>
 ${js}
