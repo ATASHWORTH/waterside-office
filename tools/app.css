@@ -180,3 +180,24 @@ details.note .source { font-size: .95em; }
 .psalter caption { text-align: left; color: var(--ink-soft); padding-bottom: .4rem; }
 .psalter th, .psalter td { border-bottom: 1px solid var(--stone); padding: .3rem .4rem; text-align: left; vertical-align: top; }
 .psalter tr.today { background: var(--linen); }
+
+/* Wording: older (KJV, 1662) or modern (ESV, modernized prayers) */
+html:not(.modern) .new-only, html.modern .old-only { display: none !important; }
+.setting.wording { align-items: flex-start; }
+.slide-pair { display: flex; align-items: center; gap: 8px; flex: none; }
+.slide-label { font-size: .9rem; text-align: center; line-height: 1.15; color: var(--ink-soft); min-width: 3.6rem; }
+.slide-label small { display: block; font-size: .72rem; letter-spacing: .08em; }
+html:not(.modern) .slide-label[data-side="old"], html.modern .slide-label[data-side="new"] { color: var(--forest); font-weight: 600; }
+#wording-hint { max-width: 12rem; }
+.esv-key { padding: 0 0 14px; font-size: .9rem; color: var(--ink-soft); }
+.esv-key p { margin: .3rem 0 .6rem; }
+.esv-key label b { color: var(--ink); }
+.key-row { display: flex; gap: 8px; }
+.key-row input { flex: 1; min-width: 0; min-height: 44px; border: 1px solid var(--stone); border-radius: 10px; background: var(--vellum); color: var(--ink); padding: 0 12px; font: inherit; font-size: .95rem; }
+.key-status { min-height: 1.2em; font-weight: 500; }
+.key-status.ok { color: var(--forest); }
+.key-status.bad { color: var(--rubric); }
+.text-note { font-family: var(--sans); font-size: .8em; color: var(--ink-soft); border-left: 2px solid var(--stone); padding-left: .8rem; margin: .5rem 0 1rem; }
+.text-note button { font: inherit; }
+.loading { font-family: var(--sans); font-size: .85em; color: var(--ink-soft); }
+.tr { font-family: var(--sans); font-size: .5em; font-weight: 600; letter-spacing: .08em; color: var(--brass-ink); vertical-align: .35em; margin-left: .3em; }

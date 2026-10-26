@@ -41,35 +41,112 @@
   }
   function esvUrl(ref) { return 'https://www.esv.org/' + ref.replace(/[–]/g, '-').replace(/\s+/g, '+') + '/'; }
 
-  // ── Psalms ──
-  function psalmBlock(ref) {
-    var m = /^(\d+)(?::(\d+)-(\d+))?$/.exec(ref);
-    var ch = +m[1], verses = (KJV.Psalms || [])[ch - 1] || [];
-    var from = m[2] ? +m[2] : 1, to = m[3] ? +m[3] : verses.length;
-    var label = m[2] ? 'Psalm ' + ch + ':' + from + '–' + to : 'Psalm ' + ch;
-    var out = '<div class="psalm"><h4>' + label + '</h4>';
-    if (!verses.length) return out + '<p class="meta">The text of this psalm is missing. Please reinstall the app.</p></div>';
-    for (var v = from, i = 0; v <= to; v++, i++) {
-      out += '<p class="pv' + (i % 2 ? ' all' : '') + '"><sup>' + v + '</sup>' + scripture(verses[v - 1]) + '</p>';
-    }
-    out += '<p class="gloria">' + esc(PLAN.gloria).replace(/ : /g, ' <span class="colon">:</span> ') + '</p></div>';
+  // ── Which text: KJV (bundled) or ESV (fetched with the reader's own key) ──
+  function isModern() { return html.classList.contains('modern'); }
+  function gloria() { return isModern() ? PLAN.gloriaModern : PLAN.gloria; }
+  function kjvVerses(book, ch, from, to) {
+    var vs = (KJV[book] || [])[ch - 1] || [], out = [];
+    from = from || 1; to = to || vs.length;
+    for (var v = from; v <= to && v <= vs.length; v++) out.push([v, vs[v - 1]]);
     return out;
+  }
+  function tag(t) { return ' <span class="tr">' + t + '</span>'; }
+
+  // ── Psalms ──
+  function psalmBlock(ref, esv) {
+    var m = /^(\d+)(?::(\d+)-(\d+))?$/.exec(ref);
+    var ch = +m[1];
+    var label = m[2] ? 'Psalm ' + ch + ':' + m[2] + '–' + m[3] : 'Psalm ' + ch;
+    var vs = esv || kjvVerses('Psalms', ch, m[2] && +m[2], m[3] && +m[3]);
+    var out = '<div class="psalm"><h4>' + label + tag(esv ? 'ESV' : 'KJV') + '</h4>';
+    if (!vs.length) return out + '<p class="meta">The text of this psalm is missing. Please reinstall the app.</p></div>';
+    vs.forEach(function (v, i) {
+      out += '<p class="pv' + (i % 2 ? ' all' : '') + '"><sup>' + v[0] + '</sup>' + scripture(v[1]) + '</p>';
+    });
+    return out + '<p class="gloria">' + esc(gloria()).replace(/ : /g, ' <span class="colon">:</span> ') + '</p></div>';
   }
 
   // ── The lesson ──
-  function lessonBlock(l, which) {
-    var verses = (KJV[l.book] || [])[l.chapter - 1] || [];
+  function lessonBlock(l, which, esv) {
+    var vs = esv || kjvVerses(l.book, l.chapter);
     var ref = l.book + ' ' + l.chapter;
     var single = (PLAN.ot.concat(PLAN.nt).filter(function (b) { return b[0] === l.book; })[0] || [0, 2])[1] === 1;
-    var out = '<div class="chapter"><h4>' + esc(ref) + '</h4>';
-    out += '<p class="rubric">The reader says: Here beginneth ' + (single ? '' : 'the ' + ordinal(l.chapter) + ' Chapter of ') + esc(bookTitle(l.book)) + '.</p>';
-    if (!verses.length) return out + '<p class="meta">The text of this chapter is missing. Please reinstall the app.</p></div>';
+    var out = '<div class="chapter"><h4>' + esc(ref) + tag(esv ? 'ESV' : 'KJV') + '</h4>';
+    out += isModern()
+      ? '<p class="rubric">The reader says: A reading from ' + esc(l.book) + (single ? '' : ', chapter ' + l.chapter) + '.</p>'
+      : '<p class="rubric">The reader says: Here beginneth ' + (single ? '' : 'the ' + ordinal(l.chapter) + ' Chapter of ') + esc(bookTitle(l.book)) + '.</p>';
+    if (!vs.length) return out + '<p class="meta">The text of this chapter is missing. Please reinstall the app.</p></div>';
     out += '<div class="chapter-text">';
-    for (var v = 0; v < verses.length; v++) out += '<p class="cv"><sup>' + (v + 1) + '</sup>' + scripture(verses[v]) + '</p>';
-    out += '</div><p class="rubric endeth">After the lesson, the reader says: Here endeth the ' + which + ' Lesson.</p>';
-    out += '<p class="lesson-tools"><a href="' + esvUrl(ref) + '" rel="noopener">Read ' + esc(ref) + ' in the ESV</a> <span class="meta">(needs a connection)</span></p></div>';
+    vs.forEach(function (v) { out += '<p class="cv"><sup>' + v[0] + '</sup>' + scripture(v[1]) + '</p>'; });
+    out += '</div><p class="rubric endeth">After the lesson, the reader says: ' + (isModern() ? 'Here ends the ' + which.toLowerCase() + ' lesson.' : 'Here endeth the ' + which + ' Lesson.') + '</p>';
+    out += '<p class="lesson-tools">' + (esv
+      ? '<a href="https://www.esv.org/' + ref.replace(/\s+/g, '+') + '/" rel="noopener">' + esc(ref) + ' at esv.org</a>'
+      : '<a href="' + esvUrl(ref) + '" rel="noopener">Read ' + esc(ref) + ' in the ESV</a> <span class="meta">(needs a connection)</span>') + '</p></div>';
     return out;
   }
+
+  // ── ESV API ──
+  // Crossway's terms (api.esv.org): non-commercial use, your own unpublished key, "ESV" with each
+  // passage, a link to www.esv.org, and no more than 500 verses kept. The app keeps only the day
+  // on screen, so the cache never holds more than one day's readings.
+  var ESV_PARAMS = 'include-passage-references=false&include-verse-numbers=true&include-first-verse-numbers=true' +
+    '&include-footnotes=false&include-footnote-body=false&include-headings=false&include-short-copyright=false' +
+    '&include-copyright=false&include-selahs=true&indent-paragraphs=0&indent-poetry=false&indent-declares=0&indent-psalm-doxology=0';
+  function esvKey() { return (load('wo-esv-key') || '').trim(); }
+  var esvCalls = 0;
+  function esvGet(query, key, done) {
+    var url = 'https://api.esv.org/v3/passage/text/?q=' + encodeURIComponent(query) + '&' + ESV_PARAMS;
+    if (Native && Native.esvFetch) {
+      var cb = '__esv' + (++esvCalls);
+      window[cb] = function (body, status) { delete window[cb]; done(status, body); };
+      try { Native.esvFetch(url, key, cb); } catch (e) { delete window[cb]; done(0, ''); }
+      return;
+    }
+    fetch(url, { headers: { Authorization: 'Token ' + key } })
+      .then(function (r) { return r.text().then(function (t) { done(r.status, t); }); }, function () { done(0, ''); });
+  }
+  function parsePassage(text) {
+    var bits = String(text).split(/\[(\d+)\]/), out = [];
+    for (var i = 1; i < bits.length; i += 2) {
+      var t = bits[i + 1].replace(/\s+/g, ' ').trim();
+      if (t) out.push([+bits[i], t]);
+    }
+    return out;
+  }
+  function dateKey(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function readCache() { try { return JSON.parse(load('wo-esv') || 'null'); } catch (e) { return null; } }
+  var esvState = {}; // dateKey → 'loading' | 'failed' | 'badkey'
+  function loadEsv(d, refs) {
+    var k = dateKey(d), key = esvKey();
+    if (!key || esvState[k]) return; // already loading, loaded, or failed ("Try again" clears it)
+    esvState[k] = 'loading';
+    esvGet(refs.join(';'), key, function (status, body) {
+      var data = null;
+      try { data = JSON.parse(body); } catch (e) {}
+      if (status === 200 && data && data.passages && data.passages.length === refs.length) {
+        var passages = {}, count = 0;
+        refs.forEach(function (r, i) { passages[r] = parsePassage(data.passages[i]); count += passages[r].length; });
+        if (count <= 500) store('wo-esv', JSON.stringify({ date: k, passages: passages }));
+        else { try { localStorage.removeItem('wo-esv'); } catch (e) {} }
+        esvState[k] = 'ok';
+        memo = { date: k, passages: passages };
+      } else {
+        esvState[k] = status === 401 || status === 403 ? 'badkey' : 'failed';
+      }
+      if (dateKey(current) === k) render(true);
+    });
+  }
+  var memo = readCache();
+
+  function noteFor(k) {
+    if (!esvKey()) return '<p class="text-note">Showing the King James Version. To read the ESV, add your free ESV key in <button type="button" class="linkish" data-open="settings">Aa settings</button>.</p>';
+    var st = esvState[k];
+    if (st === 'loading') return '<p class="text-note loading">Loading the ESV…</p>';
+    if (st === 'badkey') return '<p class="text-note">The ESV key was not accepted, so the King James Version is shown. Check it in <button type="button" class="linkish" data-open="settings">Aa settings</button>.</p>';
+    if (st === 'failed') return '<p class="text-note">Couldn’t reach the ESV (no connection?), so the King James Version is shown. <button type="button" class="linkish" data-retry>Try again</button></p>';
+    return '';
+  }
+
   function bookTitle(b) {
     var n = /^(\d) (.*)$/.exec(b);
     var names = { 1: 'First', 2: 'Second', 3: 'Third' };
@@ -100,37 +177,54 @@
     fmtYear = new Intl.DateTimeFormat(undefined, { year: 'numeric' });
   } catch (e) { fmt = null; }
 
-  function render() {
+  function render(keepScroll) {
     var isSunday = current.getDay() === 0;
     var dom = current.getDate();
     var day = Math.min(dom, 30); // 1662 rubric: on the 31st the psalms of the 30th day are read again
     var idx = dayIndex(current);
     var today = midnight(new Date());
     var diff = Math.round((current - today) / 86400000);
+    var k = dateKey(current);
 
     document.getElementById('office-date').innerHTML = esc(fmt ? fmt.format(current) : current.toDateString()) +
       '<small>' + (diff === 0 ? 'Today' : diff === -1 ? 'Yesterday' : diff === 1 ? 'Tomorrow' : esc(fmtYear ? fmtYear.format(current) : current.getFullYear())) + '</small>';
     document.getElementById('back-today').hidden = diff === 0;
     root.classList.toggle('is-sunday', isSunday);
     root.classList.toggle('is-weekday', !isSunday);
-    document.getElementById('date-pick').value = current.getFullYear() + '-' + String(current.getMonth() + 1).padStart(2, '0') + '-' + String(dom).padStart(2, '0');
+    document.getElementById('date-pick').value = k;
 
-    ['morning', 'evening'].forEach(function (o, oi) {
-      var panel = document.getElementById('panel-' + o);
+    var plan = ['morning', 'evening'].map(function (o, oi) {
+      var lesson = o === 'morning' ? chapterAt(PLAN.ot, idx) : chapterAt(PLAN.nt, idx);
+      return { o: o, psalms: PLAN.psalter[day - 1][oi], lesson: lesson, lessonRef: lesson.book + ' ' + lesson.chapter };
+    });
+    var refs = [];
+    plan.forEach(function (p) { p.psalms.forEach(function (x) { refs.push('Psalm ' + x); }); refs.push(p.lessonRef); });
+    var esv = null;
+    if (isModern() && esvKey()) {
+      if (memo && memo.date === k && refs.every(function (r) { return memo.passages[r] && memo.passages[r].length; })) esv = memo.passages;
+      else loadEsv(current, refs);
+    }
+    var tnote = isModern() && !esv ? noteFor(k) : '';
+
+    plan.forEach(function (p) {
+      var panel = document.getElementById('panel-' + p.o);
       var slot = function (name) { return panel.querySelector('[data-slot="' + name + '"]'); };
-      var ps = PLAN.psalter[day - 1][oi];
-      slot('psalter-day').textContent = 'day ' + day + ', ' + o + (dom === 31 ? ' (the 30th day read again, as the 1662 rubric directs)' : '');
-      slot('psalm-refs').textContent = ps.map(function (p) { return 'Psalm ' + p.replace('-', '–'); }).join(', ');
-      slot('psalms').innerHTML = ps.map(function (p, i) {
-        var b = psalmBlock(p);
+      slot('psalter-day').textContent = 'day ' + day + ', ' + p.o + (dom === 31 ? ' (the 30th day read again, as the 1662 rubric directs)' : '');
+      slot('psalm-refs').textContent = p.psalms.map(function (x) { return 'Psalm ' + x.replace('-', '–'); }).join(', ');
+      slot('psalms').innerHTML = tnote + p.psalms.map(function (x, i) {
+        var b = psalmBlock(x, esv && esv['Psalm ' + x]);
         return i ? b.replace('class="psalm"', 'class="psalm full-only"') : b;
       }).join('');
-      var lesson = o === 'morning' ? chapterAt(PLAN.ot, idx) : chapterAt(PLAN.nt, idx);
-      slot('lesson-ref').textContent = lesson.book + ' ' + lesson.chapter;
-      slot('lesson').innerHTML = lessonBlock(lesson, o === 'morning' ? 'First' : 'Second');
+      slot('lesson-ref').textContent = p.lessonRef;
+      slot('lesson').innerHTML = tnote + lessonBlock(p.lesson, p.o === 'morning' ? 'First' : 'Second', esv && esv[p.lessonRef]);
     });
     document.querySelectorAll('.psalter tbody tr').forEach(function (tr, i) { tr.classList.toggle('today', i === day - 1); });
   }
+  root.addEventListener('click', function (e) {
+    var o = e.target.closest('[data-open]');
+    if (o) { open(o.getAttribute('data-open')); return; }
+    if (e.target.closest('[data-retry]')) { esvState[dateKey(current)] = null; render(true); }
+  });
 
   function go(d) { current = midnight(d); render(); window.scrollTo(0, 0); }
   function shift(n) { go(new Date(current.getFullYear(), current.getMonth(), current.getDate() + n)); }
@@ -196,6 +290,41 @@
   });
 
   // ── Settings ──
+  var wordBtn = document.getElementById('wording-toggle');
+  var keyBox = document.getElementById('esv-key-box'), keyIn = document.getElementById('esv-key'), keyStatus = document.getElementById('esv-key-status');
+  function setWording(modern, rerender) {
+    html.classList.toggle('modern', modern);
+    wordBtn.setAttribute('aria-checked', modern ? 'true' : 'false');
+    keyBox.hidden = !modern;
+    document.getElementById('wording-hint').textContent = modern
+      ? 'ESV readings; prayers in today’s English.'
+      : 'King James readings; 1662 prayers.';
+    store('wo-modern', modern ? '1' : '0');
+    if (rerender) render(true);
+  }
+  wordBtn.addEventListener('click', function () { setWording(wordBtn.getAttribute('aria-checked') !== 'true', true); });
+  document.querySelectorAll('.slide-label').forEach(function (l) {
+    l.addEventListener('click', function () { setWording(l.getAttribute('data-side') === 'new', true); });
+  });
+  keyIn.value = esvKey();
+  function saveKey() {
+    var key = keyIn.value.trim();
+    store('wo-esv-key', key);
+    esvState = {}; memo = null;
+    try { localStorage.removeItem('wo-esv'); } catch (e) {}
+    if (!key) { keyStatus.textContent = 'Key removed. The King James Version will be shown.'; keyStatus.className = 'key-status'; render(true); return; }
+    keyStatus.textContent = 'Checking…'; keyStatus.className = 'key-status';
+    esvGet('John 11:35', key, function (status) {
+      if (status === 200) { keyStatus.textContent = '✓ Key works. The ESV will load each day.'; keyStatus.className = 'key-status ok'; }
+      else if (status === 401 || status === 403) { keyStatus.textContent = 'That key was not accepted. Check it and try again.'; keyStatus.className = 'key-status bad'; }
+      else { keyStatus.textContent = 'Saved, but couldn’t check it (no connection?).'; keyStatus.className = 'key-status bad'; }
+      render(true);
+    });
+  }
+  document.getElementById('esv-key-save').addEventListener('click', saveKey);
+  keyIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); saveKey(); } });
+  setWording(load('wo-modern') === '1', false);
+
   var shortBtn = document.getElementById('short-toggle');
   function setShort(on) { root.classList.toggle('short', on); shortBtn.setAttribute('aria-checked', on ? 'true' : 'false'); store('wo-short', on ? '1' : '0'); }
   shortBtn.addEventListener('click', function () { setShort(shortBtn.getAttribute('aria-checked') !== 'true'); });

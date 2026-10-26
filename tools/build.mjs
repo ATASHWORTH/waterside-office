@@ -19,6 +19,7 @@ if (!existsSync(join(SITE, 'content/office.mjs'))) {
 }
 const off = await import(pathToFileURL(join(SITE, 'content/office.mjs')).href);
 const hymns = await import(pathToFileURL(join(SITE, 'content/hymns.mjs')).href);
+const modern = await import(pathToFileURL(join(ROOT, 'tools/modern.mjs')).href);
 const OUT = join(ROOT, 'web');
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -31,15 +32,29 @@ const note = (summary, html) => html ? `<details class="note"><summary>${summary
 const verse = (r) => `<p class="scripture">${r.text}</p>`;
 const lines = (arr) => arr.map(([who, line]) => `<p class="versicle${who === 'All' ? ' all' : ''}"><b>${who}</b><span>${esc(line)}</span></p>`).join('');
 const pointed = (s) => esc(s).replace(/ : /g, ' <span class="colon" aria-hidden="true">:</span> ');
+// Older / modern wording: both are in the page; the Wording switch shows one.
+const dual = (older, newer) => older === newer ? older : `<div class="old-only">${older}</div><div class="new-only">${newer}</div>`;
+const msrc = (text) => `<p class="source">${kind('historic')}${esc(text)} · ${esc(modern.MODERN_SOURCE)}</p>`;
 const part = (id, title, inner, extra = '') => `<section class="part ${extra}" id="${id}"><h3>${title}</h3>${inner}</section>`;
 
+const cantKey = (c) => Object.keys(off.canticles).find((k) => off.canticles[k] === c);
 function canticle(c) {
-  return `${src('historic', c.source)}<p class="meta">${esc(c.subtitle)}</p>
-  <div class="canticle">${c.lines.map((l) => `<p>${pointed(l)}</p>`).join('')}<p class="gloria">${pointed(off.canticles.gloria)}</p></div>
+  const body = (ls, gloria) => `<div class="canticle">${ls.map((l) => `<p>${pointed(l)}</p>`).join('')}<p class="gloria">${pointed(gloria)}</p></div>`;
+  const m = modern.canticles[cantKey(c)];
+  if (!m || m.length !== c.lines.length) throw new Error(`Modern wording missing or out of step for canticle ${cantKey(c)}`);
+  return `${dual(src('historic', c.source), msrc(c.source))}<p class="meta">${esc(c.subtitle)}</p>
+  ${dual(body(c.lines, off.canticles.gloria), body(m, modern.canticles.gloria))}
   ${c.note ? note('About this canticle', esc(c.note)) : ''}`;
 }
 const hymnBlock = (h) => `<h4>${esc(h.title)}</h4>${src('historic', h.source)}<p class="meta">Suggested tune: ${esc(h.tune)}</p>${h.stanzas.map((s) => `<p class="stanza">${esc(s)}</p>`).join('')}${note('About this hymn', esc(h.note))}`;
-const collectBlock = (c) => `<h4>${esc(c.title)}</h4>${src('historic', c.source)}<p>${esc(c.text)}</p>${c.note ? note('A word in this prayer', esc(c.note)) : ''}`;
+const collectBlock = (c) => {
+  const m = modern.collects.find((x) => c.text.startsWith(x.starts));
+  if (!m) throw new Error(`No modern wording for the collect beginning “${c.text.slice(0, 40)}”`);
+  const older = `${src('historic', c.source)}<p>${esc(c.text)}</p>${c.note ? note('A word in this prayer', esc(c.note)) : ''}`;
+  const mnote = m.note === undefined ? c.note : m.note;
+  const newer = `${msrc(c.source)}<p>${esc(m.text)}</p>${mnote ? note('A word in this prayer', esc(mnote)) : ''}`;
+  return `<h4>${esc(c.title)}</h4>${dual(older, newer)}`;
+};
 
 function renderOffice(key) {
   const o = off.offices[key];
@@ -63,11 +78,11 @@ function renderOffice(key) {
   ${part(id('sentence'), 'Opening sentence', both(sentence, o.sentence))}
   ${part(id('confession'), 'Confession of sin', `
     <p class="rubric">All kneel or bow, and say together:</p>
-    ${src('historic', t.confession.source)}<p>${esc(t.confession.text)}</p>
+    ${dual(`${src('historic', t.confession.source)}<p>${esc(t.confession.text)}</p>`, `${msrc(t.confession.source)}<p>${esc(modern.texts.confession.text)}</p>`)}
     <p class="rubric">The leader then reads:</p>
     ${src('scripture', t.assurance.ref)}${verse(t.assurance)}
-    ${note('About the confession', esc(t.confession.note))}`, 'full-only')}
-  ${part(id('versicles'), 'Invitation to praise', `${src('historic', t.versicles.source)}${lines(t.versicles.lines)}`)}
+    ${dual(note('About the confession', esc(t.confession.note)), note('About the confession', esc(modern.texts.confession.note)))}`, 'full-only')}
+  ${part(id('versicles'), 'Invitation to praise', dual(`${src('historic', t.versicles.source)}${lines(t.versicles.lines)}`, `${msrc(t.versicles.source)}${lines(modern.texts.versicles)}`))}
   ${part(id('psalms'), 'The Psalms appointed', `
     <p class="source">${kind('historic')}Book of Common Prayer (1662) psalter · <span data-slot="psalter-day"></span></p>
     <div class="appointed"><strong>Read today</strong><span data-slot="psalm-refs"></span></div>
@@ -80,10 +95,10 @@ function renderOffice(key) {
     <div data-slot="lesson"></div>`)}
   ${part(id('canticle'), 'Canticle', sameCanticle ? cant(o.canticle.weekday) : both(cant, o.canticle))}
   ${o.canticle2 ? part(id('canticle2'), 'Second canticle', cant(o.canticle2), 'full-only') : ''}
-  ${part(id('creed'), "The Apostles’ Creed", `<p class="rubric">All say together:</p>${src('historic', t.creed.source)}${t.creed.text.map((x) => `<p>${esc(x)}</p>`).join('')}${note('Notes on the words', esc(t.creed.note))}`, 'full-only')}
+  ${part(id('creed'), "The Apostles’ Creed", `<p class="rubric">All say together:</p>${dual(`${src('historic', t.creed.source)}${t.creed.text.map((x) => `<p>${esc(x)}</p>`).join('')}${note('Notes on the words', esc(t.creed.note))}`, `${msrc('The Apostles’ Creed as in the Book of Common Prayer (1662)')}${modern.texts.creed.text.map((x) => `<p>${esc(x)}</p>`).join('')}${note('Notes on the words', esc(modern.texts.creed.note))}`)}`, 'full-only')}
   ${part(id('prayers'), 'The Prayers', `
-    <h4>The Lord’s Prayer</h4>${src('historic', t.lordsPrayer.source)}<p>${esc(t.lordsPrayer.text)}</p>
-    <div class="full-only"><h4>Suffrages</h4>${src('historic', t.suffrages.source)}${lines(t.suffrages.lines)}</div>
+    <h4>The Lord’s Prayer</h4>${dual(`${src('historic', t.lordsPrayer.source)}<p>${esc(t.lordsPrayer.text)}</p>`, `${msrc(t.lordsPrayer.source)}<p>${esc(modern.texts.lordsPrayer)}</p>`)}
+    <div class="full-only"><h4>Suffrages</h4>${dual(`${src('historic', t.suffrages.source)}${lines(t.suffrages.lines)}`, `${msrc(t.suffrages.source)}${lines(modern.texts.suffrages)}`)}</div>
     ${both((cs) => cs.map((c, i) => `<div class="${i ? 'full-only' : ''}">${collectBlock(c)}</div>`).join(''), o.collects)}
     <div class="full-only">
       <h4>Intercessions</h4>${src('original', t.intercessions.source)}
@@ -100,7 +115,7 @@ const psalterTable = () => `<div class="table-scroll"><table class="psalter"><ca
   <thead><tr><th scope="col">Day</th><th scope="col">Morning</th><th scope="col">Evening</th></tr></thead>
   <tbody>${off.psalter.map(([m, e], i) => `<tr><th scope="row">${i + 1}</th><td>${m.join(', ')}</td><td>${e.join(', ')}</td></tr>`).join('')}</tbody></table></div>`;
 
-const plan = { epoch: off.PLAN_EPOCH, psalter: off.psalter, ot: off.otBooks, nt: off.ntBooks, gloria: off.canticles.gloria };
+const plan = { epoch: off.PLAN_EPOCH, psalter: off.psalter, ot: off.otBooks, nt: off.ntBooks, gloria: off.canticles.gloria, gloriaModern: modern.canticles.gloria };
 
 // The mark is inlined: a file:// page in a WebView cannot load a CSS mask from a separate file.
 const logoUri = 'data:image/svg+xml;base64,' + readFileSync(join(SITE, 'src/assets/logo.svg')).toString('base64');
@@ -146,7 +161,8 @@ ${css}
   ${renderOffice('evening')}
   <footer class="notices">
     <p>${esc(off.ESV_NOTICE)}</p>
-    <p>Psalms and lessons are printed from the King James Version (Authorized Version, 1611), in the public domain outside the United Kingdom. Prayer Book texts (1662): public domain outside the United Kingdom; within the UK both are subject to Crown rights under letters patent. Hymn texts are pre-1800 and in the public domain.</p>
+    <p class="old-only">Psalms and lessons are printed from the King James Version (Authorized Version, 1611), in the public domain outside the United Kingdom. Prayer Book texts (1662): public domain outside the United Kingdom; within the UK both are subject to Crown rights under letters patent. Hymn texts are pre-1800 and in the public domain.</p>
+    <p class="new-only">In Modern English, psalms and lessons are from the ESV® Bible, provided by the ESV API (<a href="https://www.esv.org" rel="noopener">www.esv.org</a>); without a key or a connection the King James Version is shown instead. Prayer Book texts are the 1662 prayers with their wording modernized by Waterside Press. Hymn texts keep their original pre-1800 words.</p>
     <p>The Office complements, and does not replace, the worship, preaching, sacraments, fellowship, and pastoral care of the local church.</p>
   </footer>
 </main>
@@ -154,6 +170,20 @@ ${css}
 <div class="sheet" id="sheet-settings" role="dialog" aria-modal="true" aria-labelledby="settings-h" hidden>
   <div class="sheet-card">
     <div class="sheet-head"><h2 id="settings-h">Reading settings</h2><button type="button" class="icon-btn" data-close aria-label="Close">✕</button></div>
+    <div class="setting wording">
+      <div><b>Wording</b><small id="wording-hint"></small></div>
+      <div class="slide-pair">
+        <span class="slide-label" data-side="old">Older<small>KJV</small></span>
+        <button type="button" class="switch" id="wording-toggle" role="switch" aria-checked="false" aria-label="Modern English wording (ESV)"><span></span></button>
+        <span class="slide-label" data-side="new">Modern<small>ESV</small></span>
+      </div>
+    </div>
+    <div class="esv-key" id="esv-key-box" hidden>
+      <label for="esv-key"><b>ESV access key</b></label>
+      <p>The ESV readings come from Crossway over the internet and need your own free key. Sign in at <a href="https://api.esv.org/" rel="noopener">api.esv.org</a>, create an application (any name, non-commercial), and paste its key here. It stays on this phone.</p>
+      <div class="key-row"><input id="esv-key" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste key"><button type="button" class="icon-btn" id="esv-key-save">Save</button></div>
+      <p class="key-status" id="esv-key-status" role="status"></p>
+    </div>
     <div class="setting">
       <div><b>Shorter form</b><small>About eight minutes. Suits young children.</small></div>
       <button type="button" class="switch" id="short-toggle" role="switch" aria-checked="false"><span></span></button>

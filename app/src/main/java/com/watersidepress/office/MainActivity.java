@@ -15,6 +15,13 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 /** The Daily Office: the bundled page (web/index.html) in a full-screen WebView. Works offline. */
 public class MainActivity extends Activity {
     private WebView web;
@@ -89,6 +96,37 @@ public class MainActivity extends Activity {
                 if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             });
+        }
+
+        /** Fetches ESV text natively (a file:// page cannot make this request itself), then calls back cb(body, status). */
+        @JavascriptInterface
+        public void esvFetch(String url, String key, String cb) {
+            if (!url.startsWith("https://api.esv.org/") || !cb.matches("__esv\\d+")) return;
+            new Thread(() -> {
+                int status = 0;
+                String body = "";
+                try {
+                    HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+                    c.setConnectTimeout(12000);
+                    c.setReadTimeout(20000);
+                    c.setRequestProperty("Authorization", "Token " + key);
+                    status = c.getResponseCode();
+                    InputStream in = status < 400 ? c.getInputStream() : c.getErrorStream();
+                    if (in != null) {
+                        ByteArrayOutputStream out = new ByteArrayOutputStream();
+                        byte[] buf = new byte[8192];
+                        int n;
+                        while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                        in.close();
+                        body = out.toString("UTF-8");
+                    }
+                    c.disconnect();
+                } catch (Exception ignored) {
+                    status = 0;
+                }
+                final String js = "window." + cb + " && window." + cb + "(" + JSONObject.quote(body) + "," + status + ")";
+                runOnUiThread(() -> web.evaluateJavascript(js, null));
+            }).start();
         }
 
         @JavascriptInterface
