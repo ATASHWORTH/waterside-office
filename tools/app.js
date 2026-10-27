@@ -72,13 +72,18 @@
     var ref = l.book + ' ' + l.chapter;
     var single = (PLAN.ot.concat(PLAN.nt).filter(function (b) { return b[0] === l.book; })[0] || [0, 2])[1] === 1;
     var out = '<div class="chapter"><h4>' + esc(ref) + tag(esv ? 'ESV' : 'KJV') + '</h4>';
-    out += isModern()
-      ? '<p class="rubric">The reader says: A reading from ' + esc(l.book) + (single ? '' : ', chapter ' + l.chapter) + '.</p>'
-      : '<p class="rubric">The reader says: Here beginneth ' + (single ? '' : 'the ' + ordinal(l.chapter) + ' Chapter of ') + esc(bookTitle(l.book)) + '.</p>';
+    // The announcement before and after each lesson follows the 1662 rubric at Morning and Evening
+    // Prayer: "before every Lesson, the Minister shall say, Here beginneth such a Chapter … of such a
+    // Book: And after every Lesson, Here endeth the First, or the Second Lesson." Modern English
+    // keeps the same words with "begins" and "ends".
+    var said = function (t) { return '<p class="versicle"><b>Reader</b><span>' + t + '</span></p>'; };
+    var m = isModern();
+    out += '<p class="rubric">The reader announces the lesson:</p>' +
+      said((m ? 'Here begins ' : 'Here beginneth ') + (single ? '' : 'the ' + (m ? ordinal(l.chapter).toLowerCase() + ' chapter of ' : ordinal(l.chapter) + ' Chapter of ')) + esc(bookTitle(l.book)) + '.');
     if (!vs.length) return out + '<p class="meta">The text of this chapter is missing. Please reinstall the app.</p></div>';
     out += '<div class="chapter-text">';
     vs.forEach(function (v) { out += '<p class="cv"><sup>' + v[0] + '</sup>' + scripture(v[1]) + '</p>'; });
-    out += '</div><p class="rubric endeth">After the lesson, the reader says: ' + (isModern() ? 'Here ends the ' + which.toLowerCase() + ' lesson.' : 'Here endeth the ' + which + ' Lesson.') + '</p>';
+    out += '</div><p class="rubric endeth">At the end of the lesson:</p>' + said(m ? 'Here ends the ' + which.toLowerCase() + ' lesson.' : 'Here endeth the ' + which + ' Lesson.');
     out += '<p class="lesson-tools">' + (esv
       ? '<a href="https://www.esv.org/' + ref.replace(/\s+/g, '+') + '/" rel="noopener">' + esc(ref) + ' at esv.org</a>'
       : '<a href="' + esvUrl(ref) + '" rel="noopener">Read ' + esc(ref) + ' in the ESV</a> <span class="meta">(needs a connection)</span>') + '</p></div>';
