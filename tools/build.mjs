@@ -98,26 +98,27 @@ function renderOffice(key) {
   <nav class="office-index" aria-label="${o.name}: sections"><ol>${sections.map(([s, label, cls]) => `<li${cls ? ` class="${cls}"` : ''}><a href="#${id(s)}">${label}</a></li>`).join('')}</ol></nav>
   ${part(id('sentence'), 'Opening sentence', both(sentence, o.sentence))}
   ${part(id('confession'), 'Confession of sin', `
-    <p class="rubric">All kneel or bow, and say together:</p>
+    <p class="rubric">All kneel (or bow heads) and say together:</p>
     ${dual(`${src('historic', t.confession.source)}<p>${esc(t.confession.text)}</p>`, `${msrc(t.confession.source)}<p>${esc(modern.texts.confession.text)}</p>`)}
-    <p class="rubric">The leader then reads:</p>
+    <p class="rubric">The leader reads this promise of pardon from Scripture:</p>
     ${scripture(t.assurance)}
     ${dual(note('About the confession', esc(t.confession.note)), note('About the confession', esc(modern.texts.confession.note)))}`, 'full-only')}
   ${part(id('versicles'), 'Invitation to praise', dual(`${src('historic', t.versicles.source)}${lines(t.versicles.lines)}`, `${msrc(t.versicles.source)}${lines(modern.texts.versicles)}`))}
   ${part(id('psalms'), 'The Psalms appointed', `
     <p class="source">${kind('historic')}Book of Common Prayer (1662) psalter · <span data-slot="psalter-day"></span></p>
     <div class="appointed"><strong>Read today</strong><span data-slot="psalm-refs"></span></div>
-    <p class="rubric">The psalms are read aloud, leader and household taking alternate verses, each ending with the Gloria Patri. <span class="short-only">In the shorter form, read the first psalm appointed.</span></p>
+    <p class="rubric">Then are said the Psalms appointed, leader and household taking alternate verses; and at the end of every Psalm, Glory be to the Father. <span class="short-only">In the shorter form, read the first psalm appointed.</span></p>
     <div data-slot="psalms"></div>`)}
   ${part(id('lesson'), o.lessonLabel, `
     <p class="source">${kind('arrangement')}Waterside continuous-reading plan · <button type="button" class="linkish" data-open="about">how the plan works</button></p>
     <div class="appointed"><strong>Read today</strong><span data-slot="lesson-ref"></span></div>
     <p class="rubric short-only">In the shorter form, a few verses are enough.</p>
     <div data-slot="lesson"></div>`)}
-  ${part(id('canticle'), 'Canticle', sameCanticle ? cant(o.canticle.weekday) : both(cant, o.canticle))}
+  ${part(id('canticle'), 'Canticle', '<p class="rubric">After the lesson, all say or sing together:</p>' + (sameCanticle ? cant(o.canticle.weekday) : both(cant, o.canticle)))}
   ${o.canticle2 ? part(id('canticle2'), 'Second canticle', cant(o.canticle2), 'full-only') : ''}
-  ${part(id('creed'), "The Apostles’ Creed", `<p class="rubric">All say together:</p>${dual(`${src('historic', t.creed.source)}${t.creed.text.map((x) => `<p>${esc(x)}</p>`).join('')}${note('Notes on the words', esc(t.creed.note))}`, `${msrc('The Apostles’ Creed as in the Book of Common Prayer (1662)')}${modern.texts.creed.text.map((x) => `<p>${esc(x)}</p>`).join('')}${note('Notes on the words', esc(modern.texts.creed.note))}`)}`, 'full-only')}
+  ${part(id('creed'), "The Apostles’ Creed", `<p class="rubric">All stand, and say together:</p>${dual(`${src('historic', t.creed.source)}${t.creed.text.map((x) => `<p>${esc(x)}</p>`).join('')}${note('Notes on the words', esc(t.creed.note))}`, `${msrc('The Apostles’ Creed as in the Book of Common Prayer (1662)')}${modern.texts.creed.text.map((x) => `<p>${esc(x)}</p>`).join('')}${note('Notes on the words', esc(modern.texts.creed.note))}`)}`, 'full-only')}
   ${part(id('prayers'), 'The Prayers', `
+    <p class="rubric">All kneel (or bow heads) for the prayers.</p>
     <h4>The Lord’s Prayer</h4>${src('historic', t.lordsPrayer.source)}<p>${esc(t.lordsPrayer.text)}</p>
     <div class="full-only"><h4>Suffrages</h4>${dual(`${src('historic', t.suffrages.source)}${lines(t.suffrages.lines)}`, `${msrc(t.suffrages.source)}${lines(modern.texts.suffrages)}`)}</div>
     ${both((cs) => cs.map((c, i) => `<div class="${i ? 'full-only' : ''}">${collectBlock(c)}</div>`).join(''), o.collects)}

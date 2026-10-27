@@ -160,7 +160,7 @@
     var names = { 1: 'First', 2: 'Second', 3: 'Third' };
     if (n) {
       if (/^(Samuel|Kings|Chronicles)$/.test(n[2])) return 'the ' + names[n[1]] + ' Book of ' + n[2];
-      if (/^(Corinthians|Thessalonians|Timothy|Peter|John)$/.test(n[2])) return 'the ' + names[n[1]] + ' Epistle ' + (n[2] === 'Peter' || n[2] === 'John' ? 'General ' : '') + 'of ' + (n[2] === 'Corinthians' || n[2] === 'Thessalonians' ? 'Saint Paul to the ' : n[2] === 'Timothy' ? 'Saint Paul to ' : 'Saint ') + n[2];
+      if (/^(Corinthians|Thessalonians|Timothy|Peter|John)$/.test(n[2])) return 'the ' + names[n[1]] + ' Epistle ' + (n[2] === 'Peter' || (n[2] === 'John' && n[1] === '1') ? 'General ' : '') + 'of ' + (n[2] === 'Corinthians' || n[2] === 'Thessalonians' ? 'Saint Paul to the ' : n[2] === 'Timothy' ? 'Saint Paul to ' : 'Saint ') + n[2];
     }
     var special = {
       Genesis: 'Genesis', Exodus: 'Exodus', Leviticus: 'Leviticus', Numbers: 'Numbers', Deuteronomy: 'Deuteronomy',
